@@ -449,45 +449,38 @@
         }
         
         // Simular cambios de temperatura (en producción esto vendría de una API)
-        function simulateWeatherChanges() {
-            // Variación aleatoria de temperatura ±2°C
-            const tempChange = Math.floor(Math.random() * 5) - 2;
-            const newTemp = weatherData.current.temp + tempChange;
-            
-            // Actualizar datos
-            document.getElementById('tempValue').textContent = newTemp;
-            document.getElementById('feelsLike').textContent = (newTemp - 1) + "°C";
-            
-            // Cambiar icono según temperatura
-            let newIcon = "sunny";
-            let newCondition = "Soleado";
-            
-            if (newTemp < 10) {
-                newIcon = "rainy";
-                newCondition = "Lluvioso";
-            } else if (newTemp < 18) {
-                newIcon = "cloudy";
-                newCondition = "Nublado";
-            } else if (newTemp < 22) {
-                newIcon = "partly-cloudy";
-                newCondition = "Parcialmente nublado";
-            } else {
-                newIcon = "sunny";
-                newCondition = "Soleado";
-            }
-            
-            // Actualizar icono y condición
-            document.getElementById('weatherIcon').innerHTML = weatherIcons[newIcon];
-            document.getElementById('weatherCondition').textContent = newCondition;
-            
-            // Simular cambio de humedad
-            const newHumidity = 60 + Math.floor(Math.random() * 15);
-            document.getElementById('humidity').textContent = newHumidity + "%";
-            
-            // Simular cambio de viento
-            const newWindSpeed = 8 + Math.floor(Math.random() * 10);
-            document.getElementById('windSpeed').textContent = newWindSpeed + " km/h";
-        }
+        async function getRealWeatherData() {
+
+    
+    try {
+
+        const data = await fetch(`http://localhost:8080`);
+        
+        // Actualizar interfaz con datos reales
+        document.getElementById('tempValue').textContent = Math.round(data.main.temp);
+        document.getElementById('humidity').textContent = data.main.humidity + '%';
+        document.getElementById('windSpeed').textContent = Math.round(data.wind.speed * 3.6) + ' km/h';
+        document.getElementById('feelsLike').textContent = Math.round(data.main.feels_like) + '°C';
+        document.getElementById('pressure').textContent = data.main.pressure + ' hPa';
+        document.getElementById('weatherCondition').textContent = data.weather[0].description;
+        
+        // Seleccionar icono según condiciones
+        const weatherId = data.weather[0].id;
+        let iconType = 'sunny';
+        
+        if (weatherId < 300) { iconType = 'rainy'; } // Tormenta
+        else if (weatherId < 600) { iconType = 'rainy'; } // Lluvia
+        else if (weatherId < 700) { iconType = 'rainy'; } // Nieve
+        else if (weatherId < 800) { iconType = 'cloudy'; } // Atmosférico
+        else if (weatherId === 800) { iconType = 'sunny'; } // Despejado
+        else { iconType = 'cloudy'; } // Nubes
+        
+        document.getElementById('weatherIcon').innerHTML = weatherIcons[iconType];
+        
+    } catch (error) {
+        console.error('Error obteniendo datos:', error);
+    }
+}
         
         // Inicializar
         document.addEventListener('DOMContentLoaded', function() {
